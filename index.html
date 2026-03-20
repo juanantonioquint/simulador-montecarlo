@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Pi - Monte Carlo</title>
+    
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100px; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #grafico { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Simulación de $\pi$</h1>
+        <p>Lanza dardos a la diana usando Python en tu navegador.</p>
+        
+        <input type="number" id="num_dardos" value="1000" min="10" max="50000">
+        <button id="btn_lanzar" py-click="simular">¡Lanzar!</button>
+        
+        <div id="resultado"></div>
+        <div id="grafico"></div>
+    </div>
+
+    <py-config>
+        packages = ["numpy", "matplotlib"]
+    </py-config>
+
+    <py-script>
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from pyscript import display, document
+
+        def simular(event):
+            # Obtener el valor del input HTML
+            input_txt = document.querySelector("#num_dardos")
+            n = int(input_txt.value)
+            
+            # Lógica de Monte Carlo con NumPy
+            puntos = np.random.uniform(-1, 1, (n, 2))
+            distancias = puntos[:, 0]**2 + puntos[:, 1]**2
+            dentro = distancias <= 1
+            pi_est = 4 * (np.sum(dentro) / n)
+            
+            # Mostrar resultado de texto
+            resultado_div = document.querySelector("#resultado")
+            resultado_div.innerText = f"Pi estimado: {pi_est:.5f}"
+            
+            # Crear el gráfico
+            fig, ax = plt.subplots(figsize=(5, 5))
+            ax.scatter(puntos[dentro, 0], puntos[dentro, 1], color='blue', s=2)
+            ax.scatter(puntos[~dentro, 0], puntos[~dentro, 1], color='red', s=2)
+            ax.set_aspect('equal')
+            ax.set_title(f"Resultado con {n} dardos")
+            
+            # Limpiar gráfico anterior y mostrar el nuevo
+            grafico_div = document.querySelector("#grafico")
+            grafico_div.innerHTML = ""
+            display(fig, target="grafico")
+
+    </py-script>
+</body>
+</html>
